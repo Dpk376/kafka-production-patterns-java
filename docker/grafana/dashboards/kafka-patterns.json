@@ -1,0 +1,17 @@
+{
+  "title": "Kafka Patterns Dashboard",
+  "uid": "kafka-patterns",
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Consumer Lag",
+      "targets": [
+        {
+          "expr": "kafka_consumer_fetch_manager_records_lag_max",
+          "legendFormat": "{{client_id}}"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 30
+}

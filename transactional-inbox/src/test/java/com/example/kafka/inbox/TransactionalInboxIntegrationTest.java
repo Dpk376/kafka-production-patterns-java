@@ -65,7 +65,7 @@ class TransactionalInboxIntegrationTest {
               // Should only be 1 record despite 2 messages sent
               assertThat(repository.count()).isEqualTo(1);
             });
-            
+
     // Wait for the scheduler to pick it up and process it
     await()
         .atMost(Duration.ofSeconds(10))

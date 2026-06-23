@@ -1,12 +1,11 @@
 package com.example.kafka.loadharness.infrastructure;
 
 import com.example.kafka.loadharness.domain.OrderEvent;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-
-import java.util.UUID;
 
 @Service
 public class OrderEventProducer {

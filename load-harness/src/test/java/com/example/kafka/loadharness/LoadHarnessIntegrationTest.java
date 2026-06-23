@@ -24,22 +24,26 @@ class LoadHarnessIntegrationTest {
 
   @Test
   void shouldGenerateTrafficSuccessfully() throws Exception {
-    String response = mockMvc.perform(post("/api/load/generate?count=5"))
-        .andExpect(status().isOk())
-        .andReturn()
-        .getResponse()
-        .getContentAsString();
+    String response =
+        mockMvc
+            .perform(post("/api/load/generate?count=5"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
 
     assertThat(response).contains("Generated 5 events");
   }
 
   @Test
   void shouldGeneratePoisonPillSuccessfully() throws Exception {
-    String response = mockMvc.perform(post("/api/load/poison"))
-        .andExpect(status().isOk())
-        .andReturn()
-        .getResponse()
-        .getContentAsString();
+    String response =
+        mockMvc
+            .perform(post("/api/load/poison"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
 
     assertThat(response).contains("Poison pill sent");
   }

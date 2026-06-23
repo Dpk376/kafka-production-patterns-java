@@ -11,30 +11,30 @@ import org.springframework.stereotype.Component;
 @Component
 public class OrderEventConsumer {
 
-    private static final Logger log = LoggerFactory.getLogger(OrderEventConsumer.class);
-    private final InboxMessageRepository inboxRepository;
+  private static final Logger log = LoggerFactory.getLogger(OrderEventConsumer.class);
+  private final InboxMessageRepository inboxRepository;
 
-    public OrderEventConsumer(InboxMessageRepository inboxRepository) {
-        this.inboxRepository = inboxRepository;
+  public OrderEventConsumer(InboxMessageRepository inboxRepository) {
+    this.inboxRepository = inboxRepository;
+  }
+
+  @KafkaListener(topics = "orders.events", groupId = "inbox-group")
+  public void listen(ConsumerRecord<String, String> record, Acknowledgment ack) {
+    String dedupKey = record.key(); // using the business key as the dedup key
+    String payload = record.value();
+
+    log.info("Received order event for key: {}", dedupKey);
+
+    try {
+      inboxRepository.save(new InboxMessage(dedupKey, payload));
+      log.info("Successfully persisted event to inbox for key: {}", dedupKey);
+    } catch (DataIntegrityViolationException e) {
+      log.warn("Duplicate message detected for key: {}. Discarding.", dedupKey);
+      // We caught the unique constraint violation, meaning it's a duplicate.
+      // We just swallow it so we can ack the message.
     }
 
-    @KafkaListener(topics = "orders.events", groupId = "inbox-group")
-    public void listen(ConsumerRecord<String, String> record, Acknowledgment ack) {
-        String dedupKey = record.key(); // using the business key as the dedup key
-        String payload = record.value();
-        
-        log.info("Received order event for key: {}", dedupKey);
-
-        try {
-            inboxRepository.save(new InboxMessage(dedupKey, payload));
-            log.info("Successfully persisted event to inbox for key: {}", dedupKey);
-        } catch (DataIntegrityViolationException e) {
-            log.warn("Duplicate message detected for key: {}. Discarding.", dedupKey);
-            // We caught the unique constraint violation, meaning it's a duplicate.
-            // We just swallow it so we can ack the message.
-        }
-
-        // Always acknowledge manual offset commit
-        ack.acknowledge();
-    }
+    // Always acknowledge manual offset commit
+    ack.acknowledge();
+  }
 }

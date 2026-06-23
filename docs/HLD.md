@@ -1,13 +1,14 @@
 # High-Level Design: Kafka Production Patterns
 
 ## 1. Context and Goals
-This reference repository demonstrates four production-grade Apache Kafka patterns in Java using Spring Boot. It provides a foundation for robust, observable, and resilient event-driven architectures.
+This reference repository demonstrates five production-grade Apache Kafka patterns in Java using Spring Boot. It provides a foundation for robust, observable, and resilient event-driven architectures.
 
 ### Goals
 - Prove **Idempotent Consumers** to handle redeliveries safely.
 - Prove **Exactly-Once Semantics (EOS)** for Kafka-to-Kafka and Kafka-to-Database workloads.
 - Implement a robust **Dead-Letter-Queue (DLQ)** with intelligent routing and replay.
 - Expose **Consumer-Lag Observability** for operational readiness.
+- Prove **Transactional Inbox** for decoupled ingestion and async idempotency.
 
 ### Non-Goals
 - Cross-cluster replication (e.g., MirrorMaker 2).
@@ -27,6 +28,7 @@ This reference repository demonstrates four production-grade Apache Kafka patter
 | **Exactly-Once Semantics** | Inconsistent state during read-process-write cycles and dual-write anomalies. | Partial commits or lost messages when components fail mid-transaction. | Exactly-once processing (Kafka-to-Kafka) and eventual consistency (Outbox). |
 | **Dead-Letter-Queue** | Poison pill messages blocking partitions. | Infinite retry loops causing massive consumer lag. | Fault tolerance, topic unblocking, and replayability. |
 | **Lag Observability** | Invisible buildup of unprocessed messages. | Silent system failure and breached SLAs. | Operational visibility and alerting on processing delays. |
+| **Transactional Inbox** | Slow processing blocking partitions and duplicate messages. | Rebalance loops from slow execution and idempotency failures. | Decoupled fast ingestion and async exactly-once business execution. |
 
 ---
 
@@ -62,19 +64,23 @@ graph TD
         IC[Idempotent Consumer]
         EO[Exactly-Once Service]
         DLQ[DLQ Service]
+        IB[Inbox Service]
     end
 
     LH -- Produces --> K
     K -- Consumes --> IC
     K -- Consumes --> EO
     K -- Consumes --> DLQ
+    K -- Consumes --> IB
 
     IC -- Reads/Writes --> DB
     EO -- Outbox writes --> DB
+    IB -- Inbox writes --> DB
 
     IC -. Metrics .-> P
     EO -. Metrics .-> P
     DLQ -. Metrics .-> P
+    IB -. Metrics .-> P
     K -. Metrics .-> P
 
     P -. Queries .-> G
@@ -158,6 +164,26 @@ sequenceDiagram
         R->>B: Publish to Kafka
         B-->>R: Ack
         R->>DB: Mark as Published
+    end
+```
+
+### Transactional Inbox (Decoupled Idempotency)
+```mermaid
+sequenceDiagram
+    participant B as Broker
+    participant C as Consumer
+    participant DB as PostgreSQL
+    participant P as Poller / Processor
+    
+    B->>C: Poll() returns Record
+    C->>DB: Insert Inbox Message (Dedup Key)
+    Note right of DB: Unique Constraint Violation<br/>silently swallowed if duplicate
+    C->>B: Manual Acknowledge
+    
+    loop Async Polling
+        P->>DB: Fetch Unprocessed FOR UPDATE SKIP LOCKED
+        P->>DB: Apply Business Logic (Tx)
+        P->>DB: Mark as Processed (Tx)
     end
 ```
 

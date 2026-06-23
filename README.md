@@ -2,11 +2,12 @@
 
 This repository serves as a **Staff-level reference** for building robust, observable, and resilient event-driven architectures with Apache Kafka and Spring Boot in Java.
 
-It is designed to teach and prove four core production patterns:
+It is designed to teach and prove five core production patterns:
 1. **Idempotent Consumers** (At-Least-Once processing with Exactly-Once side effects)
 2. **Exactly-Once Semantics** (Transactional Read-Process-Write & the Transactional Outbox)
 3. **Dead-Letter-Queue Design** (Retry, Classify, Route, Replay)
 4. **Consumer-Lag Observability** (Metrics, Dashboards, Alerts)
+5. **Transactional Inbox** (Decoupled ingestion and asynchronous idempotency)
 
 ## Architecture
 See the `docs/HLD.md` and `docs/LLD.md` for a comprehensive overview of the architecture, data flows, and trade-offs.
@@ -42,6 +43,7 @@ make verify
 - `exactly-once/`: Pattern 2 implementation.
 - `dead-letter-queue/`: Pattern 3 implementation.
 - `lag-observability/`: Pattern 4 implementation.
+- `transactional-inbox/`: Pattern 5 implementation.
 - `load-harness/`: Traffic generator for load testing.
 
 ## Contributing

@@ -68,6 +68,29 @@ sequenceDiagram
     end
 ```
 
+### Inbox Pattern (Decoupled Idempotency)
+```mermaid
+sequenceDiagram
+    participant KafkaListener as OrderEventConsumer
+    participant InboxRepo as InboxMessageRepository
+    participant Scheduler as InboxProcessorScheduler
+    participant Service as OrderApplicationService
+
+    KafkaListener->>InboxRepo: save(new InboxMessage(dedupKey))
+    Note right of InboxRepo: If duplicate key,<br/>DataIntegrityViolationException is swallowed
+    InboxRepo-->>KafkaListener: success
+    KafkaListener->>KafkaListener: ack.acknowledge()
+
+    loop Every 1s
+        Scheduler->>InboxRepo: findUnprocessed(limit=50) FOR UPDATE SKIP LOCKED
+        loop For each message
+            Scheduler->>Service: processOrder(event)
+            Service-->>Scheduler: success
+            Scheduler->>InboxRepo: save(message.markProcessed())
+        end
+    end
+```
+
 ## 3. Database Schema (DDL)
 
 ```sql
@@ -95,12 +118,15 @@ CREATE INDEX idx_outbox_unpublished ON outbox_event (created_at) WHERE published
 -- Rationale: Partial index drastically speeds up the polling query. 
 -- The relay MUST use `SELECT ... FOR UPDATE SKIP LOCKED` to prevent multi-instance collisions.
 
--- Transactional Inbox (Alternative Idempotency approach if needed)
+-- Transactional Inbox (Decoupled Idempotency)
 CREATE TABLE inbox_message (
-    message_id UUID PRIMARY KEY,
+    message_id VARCHAR(255) PRIMARY KEY,
     payload JSONB NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     processed_at TIMESTAMP WITH TIME ZONE
 );
+-- Index for the poller query (fetch unprocessed, sorted by creation)
+CREATE INDEX idx_inbox_unprocessed ON inbox_message (created_at) WHERE processed_at IS NULL;
 ```
 
 ## 4. Config Surface

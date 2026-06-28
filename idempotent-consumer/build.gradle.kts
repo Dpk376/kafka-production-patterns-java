@@ -4,6 +4,7 @@ plugins {
 
 dependencies {
     implementation(project(":common"))
+    implementation(project(":kafka-resilience-spring-boot-starter"))
     
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")

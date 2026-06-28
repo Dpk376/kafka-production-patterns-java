@@ -11,6 +11,16 @@ spring:
         enable.idempotence: true
         schema.registry.url: http://localhost:8081
 
+  datasource:
+    url: jdbc:postgresql://localhost:5432/kafka_patterns
+    username: user
+    password: password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
 server:
   port: 8084
 

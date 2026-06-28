@@ -18,12 +18,14 @@ public class DlqReplayService {
 
   private static final Logger log = LoggerFactory.getLogger(DlqReplayService.class);
 
-  private final ConsumerFactory<byte[], byte[]> consumerFactory;
-  private final KafkaTemplate<byte[], byte[]> kafkaTemplate;
+  @SuppressWarnings("rawtypes")
+  private final ConsumerFactory consumerFactory;
+  @SuppressWarnings("rawtypes")
+  private final KafkaTemplate kafkaTemplate;
 
   public DlqReplayService(
-      ConsumerFactory<byte[], byte[]> consumerFactory,
-      KafkaTemplate<byte[], byte[]> kafkaTemplate) {
+      @SuppressWarnings("rawtypes") ConsumerFactory consumerFactory,
+      @SuppressWarnings("rawtypes") KafkaTemplate kafkaTemplate) {
     this.consumerFactory = consumerFactory;
     this.kafkaTemplate = kafkaTemplate;
   }
@@ -47,7 +49,7 @@ public class DlqReplayService {
     int replayedCount = 0;
 
     // Create a standalone consumer for the replay operation
-    try (Consumer<byte[], byte[]> consumer =
+    try (Consumer<Object, Object> consumer =
         consumerFactory.createConsumer(
             "dlq-replayer-" + System.currentTimeMillis(), "client-dlq-replayer")) {
 
@@ -74,21 +76,21 @@ public class DlqReplayService {
 
       boolean hasMore = true;
       while (hasMore && replayedCount < maxMessages) {
-        ConsumerRecords<byte[], byte[]> records = consumer.poll(Duration.ofSeconds(2));
+        ConsumerRecords<Object, Object> records = consumer.poll(Duration.ofSeconds(2));
 
         if (records.isEmpty()) {
           hasMore = false; // Drain complete
           break;
         }
 
-        for (ConsumerRecord<byte[], byte[]> record : records) {
+        for (ConsumerRecord<Object, Object> record : records) {
           if (replayedCount >= maxMessages) {
             break;
           }
 
           // Construct a new record for the original topic, preserving the key, value, and headers.
           // We strip the original DLQ routing headers if necessary, but for now we forward them.
-          ProducerRecord<byte[], byte[]> producerRecord =
+          ProducerRecord<Object, Object> producerRecord =
               new ProducerRecord<>(
                   originalTopic, null, record.key(), record.value(), record.headers());
 

@@ -6,8 +6,8 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication
-@EntityScan(basePackages = {"com.example.kafka.idempotent", "com.example.kafka.common"})
-@EnableJpaRepositories(basePackages = {"com.example.kafka.idempotent", "com.example.kafka.common"})
+@EntityScan(basePackages = "com.example.kafka.idempotent")
+@EnableJpaRepositories(basePackages = "com.example.kafka.idempotent")
 public class IdempotentConsumerApplication {
 
   public static void main(String[] args) {

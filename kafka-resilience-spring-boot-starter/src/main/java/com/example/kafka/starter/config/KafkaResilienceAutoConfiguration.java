@@ -69,8 +69,8 @@ public class KafkaResilienceAutoConfiguration {
   @Bean
   @ConditionalOnMissingBean
   public DlqReplayService dlqReplayService(
-      org.springframework.kafka.core.ConsumerFactory<byte[], byte[]> consumerFactory,
-      org.springframework.kafka.core.KafkaTemplate<byte[], byte[]> kafkaTemplate) {
+      @SuppressWarnings("rawtypes") org.springframework.kafka.core.ConsumerFactory consumerFactory,
+      @SuppressWarnings("rawtypes") org.springframework.kafka.core.KafkaTemplate kafkaTemplate) {
     return new DlqReplayService(consumerFactory, kafkaTemplate);
   }
 

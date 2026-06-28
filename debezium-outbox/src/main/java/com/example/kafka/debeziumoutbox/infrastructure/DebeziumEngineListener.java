@@ -24,13 +24,14 @@ public class DebeziumEngineListener {
 
   private final ExecutorService executor = Executors.newSingleThreadExecutor();
   private final DebeziumEngine<ChangeEvent<String, String>> engine;
-  private final KafkaTemplate<String, Object> kafkaTemplate;
+  @SuppressWarnings("rawtypes")
+  private final KafkaTemplate kafkaTemplate;
   private final ObjectMapper objectMapper;
   private final OutboxEventRepository outboxEventRepository;
 
   public DebeziumEngineListener(
       io.debezium.config.Configuration debeziumConfiguration,
-      KafkaTemplate<String, Object> kafkaTemplate,
+      @SuppressWarnings("rawtypes") KafkaTemplate kafkaTemplate,
       ObjectMapper objectMapper,
       OutboxEventRepository outboxEventRepository) {
     this.kafkaTemplate = kafkaTemplate;

@@ -18,8 +18,8 @@ spring-boot-starter-data-jpa = { group = "org.springframework.boot", name = "spr
 spring-kafka = { group = "org.springframework.kafka", name = "spring-kafka" }
 
 micrometer-registry-prometheus = { group = "io.micrometer", name = "micrometer-registry-prometheus" }
-micrometer-tracing-bridge-otel = { group = "io.micrometer", name = "micrometer-tracing-bridge-otel", version.ref = "micrometerTracing" }
-opentelemetry-exporter-otlp = { group = "io.opentelemetry", name = "opentelemetry-exporter-otlp", version.ref = "opentelemetry" }
+micrometer-tracing-bridge-otel = { group = "io.micrometer", name = "micrometer-tracing-bridge-otel" }
+opentelemetry-exporter-otlp = { group = "io.opentelemetry", name = "opentelemetry-exporter-otlp" }
 
 postgresql = { group = "org.postgresql", name = "postgresql" }
 flyway-core = { group = "org.flywaydb", name = "flyway-core" }

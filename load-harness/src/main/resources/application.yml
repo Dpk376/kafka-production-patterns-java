@@ -5,15 +5,22 @@ spring:
     bootstrap-servers: localhost:9092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
       acks: all
       properties:
         enable.idempotence: true
+        schema.registry.url: http://localhost:8081
 
 server:
-  port: 8084 # to avoid conflict with other apps
+  port: 8084
 
 management:
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: http://localhost:4318/v1/traces
   endpoints:
     web:
       exposure:

@@ -13,3 +13,23 @@ spring:
       hibernate:
         format_sql: true
     show-sql: true
+  kafka:
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        schema.registry.url: http://localhost:8081
+        specific.avro.reader: true
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: http://localhost:4318/v1/traces
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics

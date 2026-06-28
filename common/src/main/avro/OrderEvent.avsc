@@ -1,0 +1,28 @@
+{
+  "type": "record",
+  "name": "OrderEvent",
+  "namespace": "com.example.kafka.common.avro",
+  "doc": "Schema for Order events in the Kafka Production Patterns reference architecture.",
+  "fields": [
+    {
+      "name": "orderId",
+      "type": "string",
+      "doc": "The unique identifier of the order (UUID)."
+    },
+    {
+      "name": "customerId",
+      "type": "string",
+      "doc": "The unique identifier of the customer who placed the order."
+    },
+    {
+      "name": "price",
+      "type": "double",
+      "doc": "The total price of the order."
+    },
+    {
+      "name": "status",
+      "type": "string",
+      "doc": "The current status of the order (e.g., CREATED, SHIPPED, DELIVERED)."
+    }
+  ]
+}

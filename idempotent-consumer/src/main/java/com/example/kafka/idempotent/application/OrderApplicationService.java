@@ -1,7 +1,7 @@
 package com.example.kafka.idempotent.application;
 
+import com.example.kafka.common.avro.OrderEvent;
 import com.example.kafka.common.idempotent.application.IdempotentMessageProcessor;
-import com.example.kafka.idempotent.domain.OrderEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -22,8 +22,12 @@ public class OrderApplicationService {
     idempotentProcessor.process(
         dedupKey,
         () -> {
-          // Business logic here, shielded from idempotency mechanics
-          log.info("Processing order for first time: {}", event.orderId());
+          // Here, actual business logic would be executed.
+          log.info(
+              "Executing business logic for order {}. Amount: {}, Status: {}",
+              event.getOrderId(),
+              event.getPrice(),
+              event.getStatus());
         });
   }
 }

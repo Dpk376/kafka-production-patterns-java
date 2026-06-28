@@ -1,5 +1,7 @@
 package com.example.kafka.debeziumoutbox.infrastructure;
 
+import com.example.kafka.common.avro.OrderEvent;
+import com.example.kafka.common.outbox.OutboxEventRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.debezium.engine.ChangeEvent;
@@ -22,13 +24,13 @@ public class DebeziumEngineListener {
 
   private final ExecutorService executor = Executors.newSingleThreadExecutor();
   private final DebeziumEngine<ChangeEvent<String, String>> engine;
-  private final KafkaTemplate<String, String> kafkaTemplate;
+  private final KafkaTemplate<String, Object> kafkaTemplate;
   private final ObjectMapper objectMapper;
   private final OutboxEventRepository outboxEventRepository;
 
   public DebeziumEngineListener(
       io.debezium.config.Configuration debeziumConfiguration,
-      KafkaTemplate<String, String> kafkaTemplate,
+      KafkaTemplate<String, Object> kafkaTemplate,
       ObjectMapper objectMapper,
       OutboxEventRepository outboxEventRepository) {
     this.kafkaTemplate = kafkaTemplate;
@@ -80,10 +82,19 @@ public class DebeziumEngineListener {
       String topic = after.get("topic").asText();
       String key = after.get("message_key").asText();
       String eventPayload = after.get("payload").asText();
+      String aggregateType = after.get("aggregate_type").asText();
+
+      Object kafkaPayload = eventPayload;
+      if ("Order".equals(aggregateType)) {
+        kafkaPayload = objectMapper.readValue(eventPayload, OrderEvent.class);
+      }
 
       // Publish to Kafka synchronously to guarantee exactly-once delivery
       try {
-        kafkaTemplate.send(topic, key, eventPayload).get(5, java.util.concurrent.TimeUnit.SECONDS);
+        var unused =
+            kafkaTemplate
+                .send(topic, key, kafkaPayload)
+                .get(5, java.util.concurrent.TimeUnit.SECONDS);
         log.info("Successfully published outbox event to Kafka topic: {}", topic);
 
         // Mark as published in DB

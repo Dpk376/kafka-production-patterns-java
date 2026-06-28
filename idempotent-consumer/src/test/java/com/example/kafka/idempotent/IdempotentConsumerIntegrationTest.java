@@ -3,9 +3,8 @@ package com.example.kafka.idempotent;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
+import com.example.kafka.common.avro.OrderEvent;
 import com.example.kafka.common.idempotent.infrastructure.ProcessedMessageRepository;
-import com.example.kafka.idempotent.domain.OrderEvent;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -36,20 +35,28 @@ class IdempotentConsumerIntegrationTest {
     registry.add("spring.datasource.url", postgres::getJdbcUrl);
     registry.add("spring.datasource.username", postgres::getUsername);
     registry.add("spring.datasource.password", postgres::getPassword);
+    registry.add("spring.kafka.consumer.properties.schema.registry.url", () -> "mock://test");
+    registry.add(
+        "spring.kafka.producer.value-serializer",
+        () -> "io.confluent.kafka.serializers.KafkaAvroSerializer");
+    registry.add("spring.kafka.producer.properties.schema.registry.url", () -> "mock://test");
   }
 
-  @Autowired private KafkaTemplate<String, String> kafkaTemplate;
+  @Autowired private KafkaTemplate<String, Object> kafkaTemplate;
 
   @Autowired private ProcessedMessageRepository repository;
-
-  @Autowired private ObjectMapper objectMapper;
 
   @Test
   void shouldProcessMessageExactlyOnceWhenDuplicateEventsAreReceived() throws Exception {
     // Given
     UUID orderId = UUID.randomUUID();
-    OrderEvent event = new OrderEvent(orderId, "C123", 100.0, "PENDING");
-    String payload = objectMapper.writeValueAsString(event);
+    OrderEvent event =
+        OrderEvent.newBuilder()
+            .setOrderId(orderId.toString())
+            .setCustomerId("C123")
+            .setPrice(100.0)
+            .setStatus("PENDING")
+            .build();
 
     // When - sending two identical messages (simulating a duplicate from Producer retry)
     // Note: Normally deduplication is by topic-partition-offset, but since we are sending two
@@ -62,7 +69,7 @@ class IdempotentConsumerIntegrationTest {
     // To test topic-partition-offset deduplication, we can't easily produce the same offset twice.
     // So we will just test that processing works.
 
-    kafkaTemplate.send("orders.v1", orderId.toString(), payload);
+    kafkaTemplate.send("orders.v1", orderId.toString(), event);
 
     // Then - verify the record was saved in the DB
     await()

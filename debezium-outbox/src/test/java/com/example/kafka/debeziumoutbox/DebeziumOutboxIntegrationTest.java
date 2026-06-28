@@ -3,8 +3,8 @@ package com.example.kafka.debeziumoutbox;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
+import com.example.kafka.common.outbox.OutboxEventRepository;
 import com.example.kafka.debeziumoutbox.application.OrderApplicationService;
-import com.example.kafka.debeziumoutbox.infrastructure.OutboxEventRepository;
 import java.time.Duration;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;

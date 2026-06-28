@@ -7,12 +7,16 @@ plugins {
     alias(libs.plugins.spring.dependency.management) apply false
     alias(libs.plugins.spotless)
     alias(libs.plugins.errorprone) apply false
+    alias(libs.plugins.avro) apply false
     jacoco
 }
 
 allprojects {
     repositories {
         mavenCentral()
+        maven {
+            url = uri("https://packages.confluent.io/maven/")
+        }
     }
 }
 
@@ -40,6 +44,8 @@ subprojects {
         implementation(myLibs.spring.boot.starter)
         implementation(myLibs.spring.boot.starter.actuator)
         implementation(myLibs.micrometer.registry.prometheus)
+        implementation(myLibs.micrometer.tracing.bridge.otel)
+        implementation(myLibs.opentelemetry.exporter.otlp)
 
         "errorprone"(myLibs.errorprone.core)
         "errorprone"(myLibs.nullaway)
@@ -63,6 +69,7 @@ subprojects {
     }
 
     tasks.jacocoTestCoverageVerification {
+        onlyIf { !gradle.startParameter.excludedTaskNames.contains("test") }
         violationRules {
             rule {
                 limit {
@@ -78,6 +85,7 @@ subprojects {
 
     spotless {
         java {
+            targetExclude("build/generated-main-avro-java/**/*.java")
             googleJavaFormat()
             removeUnusedImports()
             trimTrailingWhitespace()
@@ -89,7 +97,8 @@ subprojects {
         options.errorprone.disableWarningsInGeneratedCode.set(true)
         options.errorprone.errorproneArgs.addAll(
             "-Xep:NullAway:ERROR",
-            "-XepOpt:NullAway:AnnotatedPackages=com.example.kafka"
+            "-XepOpt:NullAway:AnnotatedPackages=com.example.kafka",
+            "-XepOpt:NullAway:UnannotatedSubPackages=com.example.kafka.common.avro"
         )
     }
 }

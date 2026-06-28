@@ -1,6 +1,6 @@
 package com.example.kafka.loadharness.application;
 
-import com.example.kafka.loadharness.domain.OrderEvent;
+import com.example.kafka.common.avro.OrderEvent;
 import com.example.kafka.loadharness.infrastructure.OrderEventProducer;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -26,11 +26,12 @@ public class TrafficGeneratorController {
     log.info("Generating {} order events", count);
     for (int i = 0; i < count; i++) {
       OrderEvent event =
-          new OrderEvent(
-              UUID.randomUUID(),
-              "customer-" + (int) (Math.random() * 1000),
-              Math.round(Math.random() * 1000.0 * 100.0) / 100.0,
-              "CREATED");
+          OrderEvent.newBuilder()
+              .setOrderId(UUID.randomUUID().toString())
+              .setCustomerId("customer-" + (int) (Math.random() * 1000))
+              .setPrice(Math.round(Math.random() * 1000.0 * 100.0) / 100.0)
+              .setStatus("CREATED")
+              .build();
       producer.send(event);
     }
     return "Generated " + count + " events";

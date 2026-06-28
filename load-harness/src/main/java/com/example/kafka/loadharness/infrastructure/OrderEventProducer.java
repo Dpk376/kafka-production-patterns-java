@@ -1,6 +1,6 @@
 package com.example.kafka.loadharness.infrastructure;
 
-import com.example.kafka.loadharness.domain.OrderEvent;
+import com.example.kafka.common.avro.OrderEvent;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,14 +20,20 @@ public class OrderEventProducer {
   }
 
   public void send(OrderEvent event) {
-    log.debug("Producing order event: {}", event.orderId());
-    var unused = kafkaTemplate.send(TOPIC, event.orderId().toString(), event);
+    log.debug("Producing order event: {}", event.getOrderId());
+    var unused = kafkaTemplate.send(TOPIC, event.getOrderId().toString(), event);
   }
 
   public void sendPoisonPill() {
     log.debug("Producing poison pill message");
     // Send an event with status POISON_PILL that consumers should handle or fail on
-    OrderEvent poison = new OrderEvent(UUID.randomUUID(), "poison-customer", 0.0, "POISON_PILL");
-    var unused = kafkaTemplate.send(TOPIC, poison.orderId().toString(), poison);
+    OrderEvent poison =
+        OrderEvent.newBuilder()
+            .setOrderId(UUID.randomUUID().toString())
+            .setCustomerId("poison-customer")
+            .setPrice(0.0)
+            .setStatus("POISON_PILL")
+            .build();
+    var unused = kafkaTemplate.send(TOPIC, poison.getOrderId().toString(), poison);
   }
 }

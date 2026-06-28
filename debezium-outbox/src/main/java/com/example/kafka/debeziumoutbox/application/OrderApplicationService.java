@@ -1,53 +1,29 @@
 package com.example.kafka.debeziumoutbox.application;
 
-import com.example.kafka.debeziumoutbox.infrastructure.OutboxEvent;
-import com.example.kafka.debeziumoutbox.infrastructure.OutboxEventRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.example.kafka.starter.annotation.TransactionalOutbox;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class OrderApplicationService {
 
-  private final OutboxEventRepository outboxEventRepository;
-  private final ObjectMapper objectMapper;
-
-  public OrderApplicationService(
-      OutboxEventRepository outboxEventRepository, ObjectMapper objectMapper) {
-    this.outboxEventRepository = outboxEventRepository;
-    this.objectMapper = objectMapper;
-  }
-
   /**
    * Simulates saving an Order to the database and writing a corresponding outbox event in the SAME
-   * transaction.
+   * transaction. By using @TransactionalOutbox, the SDK automatically handles the JSON
+   * serialization and database persistence, removing boilerplate from the business service.
    */
-  @Transactional
-  public void createOrder(UUID orderId, String customerId) {
+  @TransactionalOutbox(
+      topic = "orders.v1",
+      aggregateType = "Order",
+      aggregateIdExpression = "#result.orderId().toString()",
+      messageKeyExpression = "#result.orderId().toString()")
+  public OrderCreatedEvent createOrder(UUID orderId, String customerId) {
     // 1. In a real app, we would save the domain entity here
     // orderRepository.save(new Order(orderId, customerId));
 
-    // 2. Write the outbox event in the same transaction
-    try {
-      String payload =
-          objectMapper.writeValueAsString(new OrderCreatedEvent(orderId, customerId, "CREATED"));
-
-      OutboxEvent event =
-          new OutboxEvent(
-              UUID.randomUUID(),
-              "Order",
-              orderId.toString(),
-              "orders.v1",
-              orderId.toString(),
-              payload);
-
-      outboxEventRepository.save(event);
-
-    } catch (JsonProcessingException e) {
-      throw new RuntimeException("Failed to serialize event", e);
-    }
+    // 2. Return the domain event. The starter's Aspect will intercept this,
+    // serialize it, and persist it to the outbox table within the same transaction.
+    return new OrderCreatedEvent(orderId, customerId, "CREATED");
   }
 
   public record OrderCreatedEvent(UUID orderId, String customerId, String status) {}

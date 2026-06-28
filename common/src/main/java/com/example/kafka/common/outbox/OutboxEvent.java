@@ -1,4 +1,4 @@
-package com.example.kafka.debeziumoutbox.infrastructure;
+package com.example.kafka.common.outbox;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

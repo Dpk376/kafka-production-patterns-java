@@ -3,8 +3,8 @@ package com.example.kafka.idempotent;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
+import com.example.kafka.common.idempotent.infrastructure.ProcessedMessageRepository;
 import com.example.kafka.idempotent.domain.OrderEvent;
-import com.example.kafka.idempotent.infrastructure.ProcessedMessageRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import java.util.UUID;

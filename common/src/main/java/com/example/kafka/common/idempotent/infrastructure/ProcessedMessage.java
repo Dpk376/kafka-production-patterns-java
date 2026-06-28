@@ -1,4 +1,4 @@
-package com.example.kafka.idempotent.infrastructure;
+package com.example.kafka.common.idempotent.infrastructure;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

@@ -1,4 +1,4 @@
-package com.example.kafka.idempotent.infrastructure;
+package com.example.kafka.common.idempotent.infrastructure;
 
 import java.time.OffsetDateTime;
 import org.springframework.data.jpa.repository.JpaRepository;
